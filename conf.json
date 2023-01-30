@@ -1,0 +1,6 @@
+{
+    "port": 8089,
+    "host": "localhost",
+    "token_secret": "34iyr43irywf",
+    "data_folder": "./data/"
+}
