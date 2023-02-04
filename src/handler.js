@@ -3,6 +3,7 @@ const Crawler = require("./crawler");
 const config = require('../conf.json');
 
 const crawler = new Crawler(config);
+const queue = [];
 
 module.exports = function handler (req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -41,13 +42,27 @@ module.exports = function handler (req, res) {
     req.on('data', function(chunk) {
         body += chunk;
     });
-    req.on('end', function() {
+    req.on('end', async function() {
+        if (req.method !== "POST") {
+            return;
+        }
         const recipe = JSON.parse(body);
         recipe.recipe.id = recipe.id;
         console.log(recipe);
-        crawler.run(recipe.recipe);
+
+        queue.push(recipe.id);
+
+        await crawler.run(recipe.recipe);
+
+        const i = queue.findIndex(e => e === recipe.id);
+        queue.splice(i, 1);
     });
 
     res.writeHead(200);
-    res.end("ACK");
+
+    if (req.url === "/api/queue") {
+        res.end(JSON.stringify(queue));
+    } else {
+        res.end("OK");
+    }
 };
