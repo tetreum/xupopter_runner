@@ -10,6 +10,12 @@ module.exports = function handler (req, res) {
     res.setHeader('Access-Control-Allow-Headers', 'Authorization');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
 
+    if (req.url === "/favicon.ico") {
+        res.writeHead(404);
+        res.end("");
+        return;
+    }
+
     console.log(req.method + " " + req.url);
 
     if (req.method === "OPTIONS" || req.url === "/api/health") {
