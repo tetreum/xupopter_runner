@@ -3,6 +3,8 @@ const fs = require('fs');
 const path = require('path');
 const winston = require('winston');
 
+let turnOffTimer = null;
+
 module.exports = class Crawler {
 
     constructor (config) {
@@ -88,6 +90,30 @@ module.exports = class Crawler {
         if (typeof this.browser === "undefined") {
             this.browser = await puppeteer.launch();
         }
+
+        this.resetTurnOffTimer();
+
         return this.browser;
+    }
+
+    resetTurnOffTimer () {
+        if (turnOffTimer !== null) {
+            clearTimeout(turnOffTimer);
+        }
+        turnOffTimer = setTimeout(() => {
+            this.turnOff();
+        }, 1000 * 60 * 1);
+    }
+
+    async turnOff () {
+        if (typeof this.browser === "undefined") {
+            return;
+        }
+
+        console.log("Turning off browser to free resources");
+
+        await this.browser.close();
+        this.browser = undefined;
+        turnOffTimer = null;
     }
 }
