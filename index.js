@@ -6,6 +6,24 @@ const jwt = require('jsonwebtoken');
 const crawler = new Crawler(config);
 
 const requestListener = function (req, res) {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Headers', 'Authorization');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+
+    console.log(req.method + " " + req.url);
+
+    if (req.method === "OPTIONS" || req.url === "/api/health") {
+        res.writeHead(200);
+        res.end("ALIVE");
+        return;
+    }
+
+    if (!req.headers.authorization) {
+        res.writeHead(403);
+        res.end("invalid_auth");
+        return;
+    }
+
     const token = req.headers.authorization.split(" ")[1];
     let body = '';
     let hasValidToken = false;
@@ -26,9 +44,9 @@ const requestListener = function (req, res) {
     });
     req.on('end', function() {
         const recipe = JSON.parse(body);
-
-        console.log(token, recipe);
-        crawler.run(recipe);
+        recipe.recipe.id = recipe.id;
+        console.log(recipe);
+        crawler.run(recipe.recipe);
     });
 
     res.writeHead(200);

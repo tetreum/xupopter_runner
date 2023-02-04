@@ -10,7 +10,7 @@ module.exports = class Crawler {
     }
 
     getLogger (recipe) {
-        const filename = path.join(this.config.data_folder, recipe.uuid, 'info.log');
+        const filename = path.join(this.config.data_folder, recipe.id, 'info.log');
         return winston.createLogger({
             format: winston.format.combine(
                 winston.format.timestamp(),
@@ -80,7 +80,7 @@ module.exports = class Crawler {
             }
         }
         logger.info("Recipe " + recipe.name + " finished with " + data.length + " results");
-        fs.writeFileSync(this.config.data_folder + recipe.uuid + '.json', JSON.stringify(data, null, 2));
+        fs.writeFileSync(this.config.data_folder + recipe.id + '.json', JSON.stringify(data, null, 2));
         await browser.close();
     }
 
