@@ -81,9 +81,11 @@ module.exports = class Crawler {
                     break;
             }
         }
+
         logger.info("Recipe " + recipe.name + " finished with " + data.length + " results");
         fs.writeFileSync(path.join(this.config.data_folder, recipe.id, "result.json"), JSON.stringify(data, null, 2));
-        await browser.close();
+
+        page.close();
     }
 
     async getBrowser () {
@@ -102,7 +104,7 @@ module.exports = class Crawler {
         }
         turnOffTimer = setTimeout(() => {
             this.turnOff();
-        }, 1000 * 60 * 1);
+        }, 1000 * 60 * 15);
     }
 
     async turnOff () {
