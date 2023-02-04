@@ -2,6 +2,7 @@
   "dependencies": {
     "jsonwebtoken": "^9.0.0",
     "puppeteer": "^19.6.2",
+    "serve-static": "^1.15.0",
     "winston": "^3.8.2"
   },
   "scripts": {

@@ -80,7 +80,7 @@ module.exports = class Crawler {
             }
         }
         logger.info("Recipe " + recipe.name + " finished with " + data.length + " results");
-        fs.writeFileSync(this.config.data_folder + recipe.id + '.json', JSON.stringify(data, null, 2));
+        fs.writeFileSync(path.join(this.config.data_folder, recipe.id, "result.json"), JSON.stringify(data, null, 2));
         await browser.close();
     }
 

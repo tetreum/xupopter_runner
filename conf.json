@@ -2,5 +2,5 @@
     "port": 8089,
     "host": "localhost",
     "token_secret": "d4780187c45248c42a64c2030c169e76",
-    "data_folder": "./data/"
+    "data_folder": "./public/"
 }
