@@ -34,8 +34,12 @@ module.exports = class Crawler {
         let data = [];
 
         logger.info("Running recipe " + recipe.name);
+        let pageNumber = 1;
+        let crawledDataCount = 0;
 
-        for(let block of recipe.blocks) {
+        for (let i = 0; i < recipe.blocks.length; i++) {
+            let block = recipe.blocks[i];
+
             switch (block.type) {
                 case "start":
                     logger.info("Going to " + block.details.source);
@@ -49,11 +53,47 @@ module.exports = class Crawler {
                     logger.info("Clicking on " + block.details.selector);
                     await page.click(block.details.selector);
                     break;
+                case "paginate":
+                    if (crawledDataCount === data.length) {
+                        logger.info("No more pages to crawl");
+                        continue;
+                    }
+                    crawledDataCount = data.length;
+
+                    pageNumber++;
+                    logger.info("Moving to page " + pageNumber);
+
+                    if (typeof block.details.selector !== "undefined") {
+                        await page.click(block.details.selector);
+
+                        logger.info("Waiting 5 seconds - " + page.url());
+                        await this.delay(5);
+                    }
+
+                    const startingBlockI = recipe.blocks.findIndex(b => b.id === block.details.startBlock);
+
+                    if (!startingBlockI) {
+                        throw "Starting block not found " + block.details.startBlock;
+                    }
+                    i = startingBlockI - 1; // reset the crawler back to that block
+
+                    break;
                 case "extract":
                     logger.info("Extracting " + block.details.property + " from " + block.details.selector);
-                    await page.waitForSelector(block.details.selector);
-                    data = await page.evaluate((block, data) => {
+
+                    try {
+                        await page.waitForSelector(block.details.selector);
+                    } catch (e) {
+                        if (e instanceof puppeteer.errors.TimeoutError) {
+                            logger.info("Failed to find " + block.details.selector);
+                            continue;
+                        }
+                    }
+
+                    data = await page.evaluate((block, data, indexOffset) => {
                         document.querySelectorAll(block.details.selector).forEach((entry, i) => {
+                            i += indexOffset;
+
                             if (typeof data[i] === "undefined") {
                                 data[i] = {};
                             }
@@ -77,7 +117,7 @@ module.exports = class Crawler {
                             data[i][block.details.name] = val;
                         });
                         return data;
-                    }, block, data);
+                    }, block, data, crawledDataCount);
                     break;
             }
         }
@@ -87,6 +127,12 @@ module.exports = class Crawler {
 
         page.close();
     }
+
+    delay(seconds) {
+        return new Promise(function(resolve) { 
+            setTimeout(resolve, seconds * 1000);
+        });
+     }
 
     async getBrowser () {
         if (typeof this.browser === "undefined") {
