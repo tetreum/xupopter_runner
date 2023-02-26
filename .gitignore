@@ -2,6 +2,7 @@ public/
 dist/app.js
 mix-manifest.json
 .idea
+config/
 
 # Windows image file caches
 Thumbs.db

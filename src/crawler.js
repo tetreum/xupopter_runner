@@ -2,17 +2,14 @@ const puppeteer = require("puppeteer");
 const fs = require('fs');
 const path = require('path');
 const winston = require('winston');
+const publicFolder = "./public";
 
 let turnOffTimer = null;
 
 module.exports = class Crawler {
 
-    constructor (config) {
-        this.config = config;
-    }
-
     getLogger (recipe) {
-        const filename = path.join(this.config.data_folder, recipe.id, 'info.log');
+        const filename = path.join(publicFolder, recipe.id, 'info.log');
         return winston.createLogger({
             format: winston.format.combine(
                 winston.format.timestamp(),
@@ -123,7 +120,7 @@ module.exports = class Crawler {
         }
 
         logger.info("Recipe " + recipe.name + " finished with " + data.length + " results");
-        fs.writeFileSync(path.join(this.config.data_folder, recipe.id, "result.json"), JSON.stringify(data, null, 2));
+        fs.writeFileSync(path.join(publicFolder, recipe.id, "result.json"), JSON.stringify(data, null, 2));
 
         page.close();
     }

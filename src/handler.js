@@ -1,8 +1,7 @@
 const jwt = require('jsonwebtoken');
 const Crawler = require("./crawler");
-const config = require('../conf.json');
 
-const crawler = new Crawler(config);
+const crawler = new Crawler();
 const queue = [];
 
 module.exports = function handler (req, res) {
@@ -35,7 +34,7 @@ module.exports = function handler (req, res) {
     let hasValidToken = false;
 
     try {
-        hasValidToken = jwt.verify(token, config.token_secret);
+        hasValidToken = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
     } catch (e) {
     }
 
