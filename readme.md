@@ -1,5 +1,5 @@
 # Xupopter Runner
-Executes crawling recipes coming from Xupopter Chrome Extension.
+Executes crawling recipes coming from [Xupopter Chrome Extension](https://github.com/tetreum/xupopter_chrome_extension).
 
 
 ## Usage
@@ -21,3 +21,5 @@ services:
       - /path/to/config:/app/config # Make sure your local config directory exists
       - /where/i/want/to/store/scrapped_data:/app/public # Make sure your local config directory exists
 ```
+
+The runner will be available at `http://localhost:8089`
