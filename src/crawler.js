@@ -126,17 +126,14 @@ module.exports = class Crawler {
                             let val;
         
                             switch (block.details.property) {
-                                case "src":
-                                    val = entry.src;
-                                    break;
-                                case "value":
-                                    val = entry.value;
-                                    break;
                                 case "text":
                                     val = entry.innerText;
                                     break;
                                 case "html":
                                     val = entry.innerHTML;
+                                    break;
+                                default:
+                                    val = entry[block.details.property];
                                     break;
                             }
         
