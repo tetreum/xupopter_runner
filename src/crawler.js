@@ -50,6 +50,12 @@ module.exports = class Crawler {
                     logger.info("Clicking on " + block.details.selector);
                     await page.click(block.details.selector);
                     break;
+                case "screenshot":
+                    logger.info("Screenshotting");
+                    await page.screenshot({
+                        path: this.publicPathFor(recipe.id, 'screenshot_' + i + '.jpg')
+                    });
+                    break;
                 case "jsonschema":
                     logger.info("Looking for json schema " + block.details.type);
 
@@ -163,9 +169,13 @@ module.exports = class Crawler {
             logger.info("Recipe " + recipe.name + " finished with " + data.length + " results");
         }
 
-        fs.writeFileSync(path.join(publicFolder, recipe.id, "result.json"), JSON.stringify(data, null, 2));
+        fs.writeFileSync(this.publicPathFor(recipe.id, "result.json"), JSON.stringify(data, null, 2));
 
         page.close();
+    }
+
+    publicPathFor (recipeId, fileName) {
+        return path.join(publicFolder, recipeId, fileName);
     }
 
     delay(seconds) {
@@ -177,7 +187,11 @@ module.exports = class Crawler {
     async getBrowser () {
         if (typeof this.browser === "undefined") {
             this.browser = await puppeteer.launch({
-                ignoreHTTPSErrors: true
+                ignoreHTTPSErrors: true,
+                args: [
+                    '--no-sandbox',
+                    '--disable-setuid-sandbox',
+                ]
             });
         }
 
