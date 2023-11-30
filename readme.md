@@ -23,3 +23,49 @@ services:
 ```
 
 The runner will be available at `http://localhost:8089`
+
+### Non-docker
+
+`JWT_ACCESS_SECRET=test npm start`
+
+The runner will be available at `http://localhost:8089`
+
+Request sample:
+```curl
+curl --request POST \
+  --url http://localhost:8089/ \
+  --header 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJPbmxpbmUgSldUIEJ1aWxkZXIiLCJpYXQiOjE3MDEzNDk3NzUsImV4cCI6MTczMjg4NTc3NSwiYXVkIjoid3d3LmV4YW1wbGUuY29tIiwic3ViIjoianJvY2tldEBleGFtcGxlLmNvbSIsIkdpdmVuTmFtZSI6IkpvaG5ueSIsIlN1cm5hbWUiOiJSb2NrZXQiLCJFbWFpbCI6Impyb2NrZXRAZXhhbXBsZS5jb20iLCJSb2xlIjpbIk1hbmFnZXIiLCJQcm9qZWN0IEFkbWluaXN0cmF0b3IiXX0.Ah4sSyoF1QUD65RyMCRjYKta9dOWdEEyCNvd00CqBzM' \
+  --header 'Content-Type: application/json'
+  --data '{
+	    "id": "home-crawler",
+		"recipe": {
+			"id": "a57ddd92-f32f-4bab-98d5-747a7193d924",
+			"name": "Local test",
+			"expected_output": "item",
+			"schema": 1,
+			"blocks": [
+				{
+					"id": "f3b85729-b967-4a3a-8cb4-f5c8d465be34",
+					"type": "start",
+					"details": {
+						"type": "url",
+						"source": "https://localhost:8080/"
+					}
+				},
+				{
+					"id": "40a9215d-7888-4ae1-b192-a2ae9ce21097",
+					"type": "extract",
+					"details": {
+						"name": "title",
+						"selector": "#results-container [class=\"item row border-bottom p-2\"] h3",
+						"property": "text"
+					}
+				}
+			]
+		}
+}'
+```
+
+Runner results can be downloaded by visiting the following url: `http://localhost:8089/public/SENT_ID/result.json`
+Ex: `http://localhost:8089/public/home-crawler/result.json`
+A debugging log will also be available for each run: `http://localhost:8089/public/home-crawler/info.log`  

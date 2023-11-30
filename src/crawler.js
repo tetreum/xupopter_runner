@@ -43,12 +43,35 @@ module.exports = class Crawler {
                     await page.goto(block.details.source);
                     break;
                 case "input":
-                    logger.info("Writting " + block.details.text + " on " + block.details.selector);
+                    logger.info("Writing " + block.details.text + " on " + block.details.selector);
                     await page.type(block.details.selector, block.details.text);
                     break;
                 case "click":
                     logger.info("Clicking on " + block.details.selector);
                     await page.click(block.details.selector);
+                    break;
+                case "jsonschema":
+                    logger.info("Looking for json schema " + block.details.type);
+
+                    try {
+                        await page.waitForSelector('[type="application/ld+json"]');
+                    } catch (e) {
+                        if (e instanceof puppeteer.errors.TimeoutError) {
+                            logger.info("Failed to find '[type=\"application/ld+json\"]'");
+                            continue;
+                        }
+                    }
+
+                    data = await page.evaluate((block, data) => {
+                        for (const el of document.querySelectorAll('[type="application/ld+json"]')) {
+                            const json = JSON.parse(el.innerText);
+                            if (json["@type"] !== block.details.type) {
+                                continue;
+                            }
+                            data[0] = json;
+                        }
+                        return data;
+                    }, block, data);
                     break;
                 case "paginate":
                     if (crawledDataCount === data.length) {
@@ -119,7 +142,27 @@ module.exports = class Crawler {
             }
         }
 
-        logger.info("Recipe " + recipe.name + " finished with " + data.length + " results");
+        if (recipe.expected_output === "item" && data.length > 1) {
+            const item = data[0];
+            for (const [i, entry] of data.entries()) {
+                if (i === 0) {
+                    continue;
+                }
+                for (const [k, v] of Object.entries(entry)) {
+                    if (!Array.isArray(item[k])) {
+                        item[k] = [item[k]];
+                    }
+                    item[k].push(v);
+                }
+
+            }
+            data = item;
+
+            logger.info("Recipe " + recipe.name + " finished");
+        } else {
+            logger.info("Recipe " + recipe.name + " finished with " + data.length + " results");
+        }
+
         fs.writeFileSync(path.join(publicFolder, recipe.id, "result.json"), JSON.stringify(data, null, 2));
 
         page.close();
@@ -133,7 +176,9 @@ module.exports = class Crawler {
 
     async getBrowser () {
         if (typeof this.browser === "undefined") {
-            this.browser = await puppeteer.launch();
+            this.browser = await puppeteer.launch({
+                ignoreHTTPSErrors: true
+            });
         }
 
         this.resetTurnOffTimer();

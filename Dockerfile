@@ -2,8 +2,8 @@
  
 FROM node:16-alpine
 
-LABEL org.opencontainers.image.title "Xupopter Runner"
-LABEL org.opencontainers.image.description "A self-hosted no-code webscrapper."
+LABEL org.opencontainers.image.title="Xupopter Runner"
+LABEL org.opencontainers.image.description="A self-hosted no-code webscrapper."
 LABEL org.opencontainers.image.url="https://github.com/tetreum/xupopter_runner"
 LABEL org.opencontainers.image.source='https://github.com/tetreum/xupopter_runner'
  
