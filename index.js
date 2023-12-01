@@ -10,7 +10,7 @@ if (typeof process.env.JWT_ACCESS_SECRET === "undefined") {
     throw "JWT_ACCESS_SECRET is not set";
 }
 
-var serve = serveStatic('public', { index: ['index.html', 'index.htm'] });
+const serve = serveStatic('public', { index: ['index.html', 'index.htm'] });
 
 const server = http.createServer(function onRequest (req, res) {
     if (req.url.startsWith("/public/")) {

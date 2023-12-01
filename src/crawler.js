@@ -1,10 +1,13 @@
-const puppeteer = require("puppeteer");
+const puppeteer = require('puppeteer-extra');
 const fs = require('fs');
 const path = require('path');
 const winston = require('winston');
 const publicFolder = "./public";
+const StealthPlugin = require('puppeteer-extra-plugin-stealth')
 
 let turnOffTimer = null;
+
+puppeteer.use(StealthPlugin());
 
 module.exports = class Crawler {
 
@@ -53,8 +56,14 @@ module.exports = class Crawler {
                 case "screenshot":
                     logger.info("Screenshotting");
                     await page.screenshot({
-                        path: this.publicPathFor(recipe.id, 'screenshot_' + i + '.jpg')
+                        path: this.publicPathFor(recipe.id, 'screenshot_' + i + '.jpg'),
+                        fullPage: true
                     });
+                    break;
+                case "save-html":
+                    logger.info("Saving html");
+                    const html = await page.content();
+                    fs.writeFileSync(this.publicPathFor(recipe.id, "document.html"), html);
                     break;
                 case "jsonschema":
                     logger.info("Looking for json schema " + block.details.type);
@@ -62,7 +71,7 @@ module.exports = class Crawler {
                     try {
                         await page.waitForSelector('[type="application/ld+json"]');
                     } catch (e) {
-                        if (e instanceof puppeteer.errors.TimeoutError) {
+                        if (e instanceof puppeteer.pptr.errors.TimeoutError) {
                             logger.info("Failed to find '[type=\"application/ld+json\"]'");
                             continue;
                         }
@@ -110,7 +119,7 @@ module.exports = class Crawler {
                     try {
                         await page.waitForSelector(block.details.selector);
                     } catch (e) {
-                        if (e instanceof puppeteer.errors.TimeoutError) {
+                        if (e instanceof puppeteer.pptr.errors.TimeoutError) {
                             logger.info("Failed to find " + block.details.selector);
                             continue;
                         }
