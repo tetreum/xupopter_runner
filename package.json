@@ -1,15 +1,35 @@
 {
+  "name": "xupopter_runner",
+  "version": "0.0.0",
+  "scripts": {
+    "start": "if [ -x \"$(command -v ./node_modules/.bin/nodemon)\" ]; then npm run dev; else npm run start:app; fi;",
+    "start:app": "node ./dist",
+    "dev": "nodemon --config nodemon.json",
+    "build": "tsc --build",
+    "lint": "eslint . --ext ts --report-unused-disable-directives --max-warnings 0"
+  },
   "dependencies": {
-    "dotenv": "^16.0.3",
-    "jsonwebtoken": "^9.0.0",
-    "puppeteer": "^19.6.2",
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.1",
+    "express": "^4.18.2",
+    "http-status": "^1.7.3",
+    "jsonwebtoken": "^9.0.2",
     "puppeteer-extra": "^3.3.6",
     "puppeteer-extra-plugin-adblocker": "^2.13.6",
     "puppeteer-extra-plugin-stealth": "^2.11.2",
-    "serve-static": "^1.15.0",
-    "winston": "^3.8.2"
+    "winston": "^3.11.0"
   },
-  "scripts": {
-    "start": "node index.js"
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/jsonwebtoken": "^9.0.5",
+    "@types/serve-static": "^1.15.5",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "eslint": "^8.56.0",
+    "nodemon": "^3.0.3",
+    "prettier": "^3.2.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.2.2"
   }
 }

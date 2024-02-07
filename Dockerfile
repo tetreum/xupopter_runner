@@ -1,26 +1,46 @@
-# Dockerfile
- 
-FROM node:16-alpine
+# https://hub.docker.com/_/node
+FROM node:20-alpine
 
-LABEL org.opencontainers.image.title="Xupopter Runner"
-LABEL org.opencontainers.image.description="A self-hosted no-code webscrapper."
-LABEL org.opencontainers.image.url="https://github.com/tetreum/xupopter_runner"
-LABEL org.opencontainers.image.source='https://github.com/tetreum/xupopter_runner'
- 
-RUN npm install -g pnpm
- 
-WORKDIR /app
-COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile
- 
-COPY . .
-RUN pnpm build
- 
-ENV NODE_ENV production
-ENV PORT 8089
-EXPOSE $PORT
+# https://pptr.dev/troubleshooting
+RUN apk add --no-cache \
+      chromium \
+      nss \
+      freetype \
+      harfbuzz \
+      ca-certificates \
+      ttf-freefont \
+      nodejs \
+      yarn
 
-HEALTHCHECK --interval=10s --timeout=3s --start-period=20s \
-  CMD wget --no-verbose --tries=1 --spider --no-check-certificate http://localhost:$PORT/api/health || exit 1
+# Tell Puppeteer to skip installing Chrome. We'll be using the installed package.
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
 
-CMD ["node", "index.js"]
+# Create and change to the app directory.
+WORKDIR /usr/src/app
+
+# Copy application dependency manifests to the container image.
+# A wildcard is used to ensure copying both package.json AND package-lock.json (when available).
+# Copying this first prevents re-running npm install on every code change.
+COPY package*.json ./
+
+# Install production dependencies.
+# If you add a package-lock.json, speed your build by switching to 'npm ci'.
+# RUN npm ci --only=production
+RUN npm install --only=production
+
+# Copy local code to the container image.
+COPY . ./
+
+RUN npm run build
+
+# Add user so we don't need --no-sandbox.
+RUN addgroup -S pptruser && adduser -S -G pptruser pptruser \
+    && mkdir -p /home/pptruser/Downloads /app \
+    && chown -R pptruser:pptruser /home/pptruser \
+    && chown -R pptruser:pptruser /app
+
+# Run everything after as non-privileged user.
+USER pptruser
+
+# Run the web service on container startup.
+CMD [ "npm", "run", "start" ]
