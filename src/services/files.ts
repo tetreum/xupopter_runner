@@ -17,6 +17,11 @@ class Files {
 		this.basePath = basePath || Files.TEMP_FOLDER;
 	}
 
+	public newWritePointer(fileName: string): fs.WriteStream {
+		const filePath = this.getAbsolutePath(fileName);
+		return fs.createWriteStream(filePath, { flags: "a" });
+	}
+
 	public readFile(fileName: string): Buffer | null {
 		const filePath = this.getAbsolutePath(fileName);
 		if (this.fileExists(fileName)) {
@@ -35,6 +40,18 @@ class Files {
 		if (this.fileExists(fileName)) {
 			fs.unlinkSync(filePath);
 		}
+	}
+
+	public async readLine(fileName: string, line: number): Promise<string> {
+		const filePath = this.getAbsolutePath(fileName);
+		const { stdout } = await execPromise(`sed -n '${line}p' ${filePath}`);
+		return stdout?.trim();
+	}
+
+	public async countFileLines(fileName: string): Promise<number> {
+		const filePath = this.getAbsolutePath(fileName);
+		const { stdout } = await execPromise(`wc -l < ${filePath}`);
+		return Number(stdout || 0);
 	}
 
 	public fileExists(path: string): boolean {

@@ -3,8 +3,9 @@ import { Browser, Page, TimeoutError } from "puppeteer";
 import path from "path";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
 import logger from "../services/logger";
-import { delay } from "../utils/random";
+import { deepClone, delay } from "../utils/random";
 import Files from "./files";
+import fs from "fs";
 import httpGot from "./http-got";
 
 export enum EBlockType {
@@ -39,16 +40,19 @@ puppeteer.use(StealthPlugin());
 
 export default class Crawler {
 	private readonly fs: Files;
+	private readonly fsTmp: Files;
 	private turnOffTimer = null;
 	private browser: Browser;
 
 	constructor() {
 		this.fs = new Files("/usr/src/app/public");
+		this.fsTmp = new Files();
 	}
 
-	public async run(recipe: IRecipe) {
+	public async run(recipe: IRecipe, index?: number, pointer?: fs.WriteStream) {
 		logger.info("Running recipe " + recipe.name);
 
+		const resultFilePath = this.publicPathFor(recipe.id, "result.json");
 		this.fs.createDirectoryIfNotExists(recipe.id);
 		await this.getBrowser();
 		const page: Page = await this.browser.newPage();
@@ -68,6 +72,19 @@ export default class Crawler {
 						} else if (block.details.type === "file") {
 							logger.info("Downloading file: " + block.details.source);
 							await httpGot.fetch(block.details.source, true);
+							const fileName = httpGot.parseUrlToCacheFileName(block.details.source);
+							const urlsCount = await this.fsTmp.countFileLines(fileName);
+							const writePointer = this.fs.newWritePointer(resultFilePath);
+
+							for (let i = 0; i < urlsCount; i++) {
+								const url = await this.fsTmp.readLine(fileName, i + 1);
+								const clonedRecipe = deepClone<IRecipe>(recipe);
+								clonedRecipe.blocks[0].details.type = "url";
+								clonedRecipe.blocks[0].details.source = url;
+
+								await this.run(clonedRecipe, i, writePointer);
+							}
+							return;
 						}
 						break;
 
@@ -207,13 +224,16 @@ export default class Crawler {
 					}
 				}
 				data = item;
-
 				logger.info("Recipe " + recipe.name + " finished");
 			} else {
 				logger.info("Recipe " + recipe.name + " finished with " + data.length + " results");
 			}
 
-			this.fs.writeFile(this.publicPathFor(recipe.id, "result.json"), JSON.stringify(data, null, 2));
+			if (typeof index !== "undefined") {
+				pointer.write(JSON.stringify(data) + "\n");
+			} else {
+				this.fs.writeFile(resultFilePath, JSON.stringify(data, null, 2));
+			}
 		} catch (error) {
 			logger.error("Crawler error: ", error);
 		} finally {

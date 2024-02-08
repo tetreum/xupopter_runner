@@ -8,6 +8,7 @@ mix-manifest.json
 
 # Thumbnails
 ._*
-/config/.env
+.env
 /dist/
 /node_modules/
+google_application_credentials.json
