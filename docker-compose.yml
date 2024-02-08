@@ -1,0 +1,12 @@
+version: "3.8"
+
+services:
+  xupopter_runner:
+    container_name: xupopter_runner
+    build: .
+    volumes:
+      - ./:/usr/src/app
+    ports:
+      - "8089:8089"
+    environment:
+      - JWT_ACCESS_SECRET=1234

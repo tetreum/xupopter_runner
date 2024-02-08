@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "baseUrl": "./",
+    "emitDecoratorMetadata": true,
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "importHelpers": true,
+    "module": "NodeNext",
+    "removeComments": true,
+    "sourceMap": false,
+    "strict": false,
+    "target": "ESNext",
+    "resolveJsonModule": true,
+    "moduleResolution": "nodenext",
+    "outDir": "./dist"
+  },
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}
