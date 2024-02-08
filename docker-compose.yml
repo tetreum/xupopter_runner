@@ -1,5 +1,6 @@
 version: "3.8"
 
+name: xupopter-runner
 services:
   xupopter_runner:
     container_name: xupopter_runner
@@ -10,3 +11,8 @@ services:
       - "8089:8089"
     environment:
       - JWT_ACCESS_SECRET=1234
+    networks:
+      - feed-generator_feed-generator
+networks:
+  feed-generator_feed-generator:
+    external: true

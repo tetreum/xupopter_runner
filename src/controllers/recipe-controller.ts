@@ -37,7 +37,13 @@ class RecipeController {
 				if (recipe.blocks[0].details?.type === "file") {
 					const fileContent = this.fs.readFile(`${recipe.id}/result.json`);
 					await cloudStorage.uploadFile(`${recipe.id}.jsonl`, fileContent);
-					await messageBroker.connect();
+					await messageBroker.dispatch(
+						JSON.stringify({
+							parent: recipe.id,
+							batch: recipe.blocks[0].id,
+							url: cloudStorage.getFilePublicUrl(`${recipe.id}.jsonl`),
+						}),
+					);
 				}
 			}
 		}

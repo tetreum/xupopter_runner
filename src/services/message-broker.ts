@@ -111,7 +111,7 @@ class MessageBroker {
 				this.isMessageBeingProcessed = false;
 				throw new Error("Message not dispatched: " + msg);
 			} else {
-				console.log("Message dispatched: " + msg);
+				logger.info("Message dispatched: " + msg);
 			}
 
 			const nextMessage = this.messagesToSend.shift();
