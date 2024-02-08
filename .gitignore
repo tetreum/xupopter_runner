@@ -10,3 +10,4 @@ mix-manifest.json
 ._*
 /config/.env
 /dist/
+/node_modules/

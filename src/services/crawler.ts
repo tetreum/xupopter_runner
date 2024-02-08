@@ -5,6 +5,7 @@ import StealthPlugin from "puppeteer-extra-plugin-stealth";
 import logger from "../services/logger";
 import { delay } from "../utils/random";
 import Files from "./files";
+import httpGot from "./http-got";
 
 export enum EBlockType {
 	start = "start",
@@ -61,8 +62,13 @@ export default class Crawler {
 				const block = recipe.blocks[i];
 				switch (block.type) {
 					case EBlockType.start:
-						logger.info("Going to " + block.details.source);
-						await page.goto(block.details.source);
+						if (block.details.type === "url") {
+							logger.info("Going to: " + block.details.source);
+							await page.goto(block.details.source);
+						} else if (block.details.type === "file") {
+							logger.info("Downloading file: " + block.details.source);
+							await httpGot.fetch(block.details.source, true);
+						}
 						break;
 
 					case EBlockType.input:
