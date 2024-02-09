@@ -20,7 +20,8 @@ export enum EBlockType {
 }
 
 export enum ERecipeExpectedOutput {
-	item,
+	item = "item",
+	list = "list",
 }
 
 interface IRecipeBlock {
@@ -71,6 +72,7 @@ export default class Crawler {
 							await page.goto(block.details.source);
 						} else if (block.details.type === "file") {
 							logger.info("Downloading file: " + block.details.source);
+							this.fs.deleteFile(resultFilePath);
 							await httpGot.fetch(block.details.source, true);
 							const fileName = httpGot.parseUrlToCacheFileName(block.details.source);
 							const urlsCount = await this.fsTmp.countFileLines(fileName);
@@ -137,6 +139,11 @@ export default class Crawler {
 							block,
 							data,
 						);
+
+						// Take specified URL instead of the schema URL
+						if (!!data?.[0]) {
+							data[0].url = recipe.blocks[0].details.source;
+						}
 						break;
 
 					case EBlockType.paginate:
@@ -210,17 +217,19 @@ export default class Crawler {
 				}
 			}
 
-			if (recipe.expectedOutput === ERecipeExpectedOutput.item && data.length > 1) {
+			if (recipe.expectedOutput === ERecipeExpectedOutput.item) {
 				const item = data[0];
-				for (const [i, entry] of data.entries()) {
-					if (i === 0) {
-						continue;
-					}
-					for (const [k, v] of Object.entries(entry)) {
-						if (!Array.isArray(item[k])) {
-							item[k] = [item[k]];
+				if (data.length > 1) {
+					for (const [i, entry] of data.entries()) {
+						if (i === 0) {
+							continue;
 						}
-						item[k].push(v);
+						for (const [k, v] of Object.entries(entry)) {
+							if (!Array.isArray(item[k])) {
+								item[k] = [item[k]];
+							}
+							item[k].push(v);
+						}
 					}
 				}
 				data = item;

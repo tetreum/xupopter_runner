@@ -1,4 +1,4 @@
-import client, { Channel, Connection } from "amqplib";
+import client, { Channel, Connection, ConsumeMessage } from "amqplib";
 import logger from "./logger";
 
 enum EConnectStatus {
@@ -8,24 +8,31 @@ enum EConnectStatus {
 	DISCONNECTING,
 }
 
-class MessageBroker {
+export enum EQueueName {
+	xupopterJobs = "xupopterJobs",
+	xupopterCompletedJobs = "xupopterCompletedJobs",
+}
+
+export default class MessageBroker {
 	private readonly _amqUrl: string;
 	private _connection: Connection | null = null;
 	private _channel: Channel | null = null;
 	private status: EConnectStatus = EConnectStatus.DISCONNECTED;
-	private queueName = "updateDataImport";
+	private readonly queueName: EQueueName;
 
 	private messagesToSend: string[] = [];
 	private isMessageBeingProcessed = false;
 
-	constructor() {
+	constructor(queueName: EQueueName) {
+		this.queueName = queueName;
+
 		const user = process.env.RABBITMQ_USER;
 		const password = process.env.RABBITMQ_PASSWORD;
 		const serviceName = process.env.RABBITMQ_SERVICE_NAME;
 		const port = process.env.RABBITMQ_PORT;
 		const virtualHost = process.env.RABBITMQ_VIRTUAL_HOST;
 
-		this._amqUrl = "amqp://" + user + ":" + password + "@" + serviceName + ":" + port + virtualHost;
+		this._amqUrl = `amqp://${user}:${password}@${serviceName}:${port}${virtualHost}`;
 		logger.info("RabbitMQ connection URL: " + this._amqUrl);
 	}
 
@@ -86,7 +93,17 @@ class MessageBroker {
 		return this.status === EConnectStatus.CONNECTING;
 	}
 
-	async dispatch(msg: string): Promise<void> {
+	public async consume(cb: (msg: ConsumeMessage) => void) {
+		if (this.connectionHasNotCreatedYet()) {
+			await this.connect();
+		}
+		await this.assertQueue(this.queueName, { durable: true });
+		await this.channel().consume(this.queueName, cb, {
+			noAck: false,
+		});
+	}
+
+	public async dispatch(msg: string): Promise<void> {
 		if (this.connectionHasNotCreatedYet()) {
 			if (this.isConnecting()) {
 				this.messagesToSend.push(msg);
@@ -134,6 +151,3 @@ class MessageBroker {
 		this.status = status;
 	}
 }
-
-const messageBroker = new MessageBroker();
-export default messageBroker;

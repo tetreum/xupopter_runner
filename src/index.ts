@@ -6,6 +6,23 @@ import cors from "cors";
 import router from "./routes/routes";
 import logger from "./services/logger";
 import MW from "./middlewares/middlewares";
+import JobConsumer from "./consumers/JobConsumer";
+
+process.on("unhandledRejection", (reason: string, p: Promise<any>) => {
+	logger.error("Unhandled Rejection at:", p, "reason:", reason);
+});
+
+process.on("error", (err) => {
+	logger.error("Process error", err);
+});
+
+process.on("uncaughtException", function (err) {
+	logger.error("Process uncaught exception", err);
+});
+
+process.on("unhandledRejection", (reason, p) => {
+	console.log("#338: process unhandled rejection", p, "reason", reason);
+});
 
 const app = express();
 const port = 8089;
@@ -29,3 +46,6 @@ app.listen(port, () => {
 	logger.info(`Server running at http://localhost:${port}`);
 });
 logger.info("ENV: " + process.env.NODE_ENV);
+
+// Start Job Consumer
+new JobConsumer();

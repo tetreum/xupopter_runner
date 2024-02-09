@@ -2,18 +2,20 @@ import Crawler, { IRecipe } from "../services/crawler";
 import logger from "../services/logger";
 import cloudStorage from "../services/cloud-storage";
 import Files from "../services/files";
-import messageBroker from "../services/message-broker";
+import MessageBroker, { EQueueName } from "../services/message-broker";
 
 class RecipeController {
 	private readonly queue: IRecipe[];
 	private readonly crawler: Crawler;
 	private readonly fs: Files;
+	private readonly completedJobsBus: MessageBroker;
 	private isConsuming = false;
 
 	constructor() {
 		this.queue = [];
 		this.crawler = new Crawler();
 		this.fs = new Files(Files.PUBLIC_FOLDER);
+		this.completedJobsBus = new MessageBroker(EQueueName.xupopterCompletedJobs);
 	}
 
 	public addRecipe(recipe: IRecipe): void {
@@ -35,13 +37,13 @@ class RecipeController {
 				await this.crawler.run(recipe);
 
 				if (recipe.blocks[0].details?.type === "file") {
+					const batch = recipe.blocks[0].id;
 					const fileContent = this.fs.readFile(`${recipe.id}/result.json`);
-					await cloudStorage.uploadFile(`${recipe.id}.jsonl`, fileContent);
-					await messageBroker.dispatch(
+					await cloudStorage.uploadFile(`${batch}.json`, fileContent);
+					await this.completedJobsBus.dispatch(
 						JSON.stringify({
 							parent: recipe.id,
-							batch: recipe.blocks[0].id,
-							url: cloudStorage.getFilePublicUrl(`${recipe.id}.jsonl`),
+							batch,
 						}),
 					);
 				}

@@ -42,6 +42,10 @@ class CloudStorage {
 	public getFilePublicUrl(filePath: string): string {
 		return `https://storage.googleapis.com/${BUCKET_NAME}/${filePath}`;
 	}
+
+	public getFileAuthenticatedUrl(filePath: string): string {
+		return `https://storage.cloud.google.com/${BUCKET_NAME}/${filePath}`;
+	}
 }
 
 const cloudStorage = new CloudStorage();
