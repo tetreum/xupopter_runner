@@ -128,7 +128,7 @@ export default class MessageBroker {
 				this.isMessageBeingProcessed = false;
 				throw new Error("Message not dispatched: " + msg);
 			} else {
-				logger.info("Message dispatched: " + msg);
+				logger.info(`Message dispatched (${this.queueName}): ${msg}`);
 			}
 
 			const nextMessage = this.messagesToSend.shift();

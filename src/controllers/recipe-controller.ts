@@ -37,13 +37,13 @@ class RecipeController {
 				await this.crawler.run(recipe);
 
 				if (recipe.blocks[0].details?.type === "file") {
-					const batch = recipe.blocks[0].id;
+					const batchId = recipe.blocks[0].id;
 					const fileContent = this.fs.readFile(`${recipe.id}/result.json`);
-					await cloudStorage.uploadFile(`${batch}.json`, fileContent);
+					await cloudStorage.uploadFile(`${batchId}.json`, fileContent);
 					await this.completedJobsBus.dispatch(
 						JSON.stringify({
 							parent: recipe.id,
-							batch,
+							batch: batchId,
 						}),
 					);
 				}

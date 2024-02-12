@@ -6,7 +6,7 @@ import cors from "cors";
 import router from "./routes/routes";
 import logger from "./services/logger";
 import MW from "./middlewares/middlewares";
-import JobConsumer from "./consumers/JobConsumer";
+import JobConsumer from "./consumers/job-consumer";
 
 process.on("unhandledRejection", (reason: string, p: Promise<any>) => {
 	logger.error("Unhandled Rejection at:", p, "reason:", reason);
