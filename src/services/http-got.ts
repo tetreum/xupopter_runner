@@ -75,7 +75,9 @@ class HttpGot {
 
 	public parseUrlToCacheFileName(url: string): string {
 		const jsUrl = new URL(url);
-		const [folder, fileName] = [jsUrl.hostname, jsUrl.pathname].map((s) => s.replace(/[.:/]/g, "_"));
+		const [folder, fileName] = [jsUrl.hostname, jsUrl.pathname + jsUrl.search].map((s) =>
+			s.replace(/[?.:/]/g, "_"),
+		);
 		return `http-got/${folder}/${fileName}`;
 	}
 

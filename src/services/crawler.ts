@@ -69,7 +69,11 @@ export default class Crawler {
 					case EBlockType.start:
 						if (block.details.type === "url") {
 							logger.info("Going to: " + block.details.source);
-							await page.goto(block.details.source);
+							const response = await page.goto(block.details.source);
+							if (response.status() === 404) {
+								logger.info("Page not found: " + block.details.source);
+								return;
+							}
 						} else if (block.details.type === "file") {
 							logger.info("Downloading file: " + block.details.source);
 							this.fs.deleteFile(resultFilePath);
@@ -86,6 +90,7 @@ export default class Crawler {
 
 								await this.run(clonedRecipe, i, writePointer);
 							}
+							this.fs.deleteDirectory(fileName);
 							return;
 						}
 						break;
